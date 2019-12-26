@@ -43,8 +43,10 @@ from qgis.gui import QgsMessageBar
 from collections import Counter
 
 class QuickPrintLayoutCreator:
-	"""QGIS Plugin Implementation."""
 
+
+	#Functions created by plugin builder
+	"""QGIS Plugin Implementation."""
 	def __init__(self, iface):
 		"""Constructor.
 
@@ -108,45 +110,6 @@ class QuickPrintLayoutCreator:
 		status_tip=None,
 		whats_this=None,
 		parent=None):
-		"""Add a toolbar icon to the toolbar.
-
-		:param icon_path: Path to the icon for this action. Can be a resource
-			path (e.g. ':/plugins/foo/bar.png') or a normal file system path.
-		:type icon_path: str
-
-		:param text: Text that should be shown in menu items for this action.
-		:type text: str
-
-		:param callback: Function to be called when the action is triggered.
-		:type callback: function
-
-		:param enabled_flag: A flag indicating if the action should be enabled
-			by default. Defaults to True.
-		:type enabled_flag: bool
-
-		:param add_to_menu: Flag indicating whether the action should also
-			be added to the menu. Defaults to True.
-		:type add_to_menu: bool
-
-		:param add_to_toolbar: Flag indicating whether the action should also
-			be added to the toolbar. Defaults to True.
-		:type add_to_toolbar: bool
-
-		:param status_tip: Optional text to show in a popup when mouse pointer
-			hovers over the action.
-		:type status_tip: str
-
-		:param parent: Parent widget for the new action. Defaults None.
-		:type parent: QWidget
-
-		:param whats_this: Optional text to show in the status bar when the
-			mouse pointer hovers over the action.
-
-		:returns: The action that was created. Note that the action is also
-			added to self.actions list.
-		:rtype: QAction
-		"""
-
 		icon = QIcon(icon_path)
 		action = QAction(icon, text, parent)
 		action.triggered.connect(callback)
@@ -171,18 +134,6 @@ class QuickPrintLayoutCreator:
 
 		return action
 		
-	def initGui(self):	
-		"""Create the menu entries and toolbar icons inside the QGIS GUI."""
-		icon_path = ':/plugins/QuickPrintLayoutCreator/icon.png'
-		self.add_action(
-			icon_path,
-			text=self.tr(u'Quick Print Layout Creator and Exporter'),
-			callback=self.run,
-			parent=self.iface.mainWindow())
-
-		# will be set False in run()
-		self.first_start = True
-		
 	def unload(self):
 		"""Removes the plugin menu item and icon from QGIS GUI."""
 		for action in self.actions:
@@ -191,35 +142,21 @@ class QuickPrintLayoutCreator:
 				action)
 			self.iface.removeToolBarIcon(action)
 
-	def doIt(self):
-	
-		#get the list of layer selected names
-		layerNames, layerIds, layerTitles = self.getCheckedLayers()
-		#get the name of the selected layout
-		layoutName = self.getSelectedLayout()
-		if (layerNames != None and layerIds != None and layoutName != None and layerNames != [] and layoutName != []):
-			if	self.dlg.override.checkState():
-				for layerName in layerNames:
-					self.deleteLayouts(layoutName+'_QuickExport'+'_'+layerName)
-			if	self.dlg.exportLayouts.checkState():
-				if self.checkDirectory(self.dlg.browse.filePath()):
-					self.createNewLayouts(layerNames,layerIds, layoutName, self.getExtensionName(self.dlg.supportedFormatsBox.currentText()), self.dlg.browse.filePath(), layerTitles)
-					self.dlg.close()
-					QMessageBox.warning(None, self.tr(u'Operation completed'), self.tr(u"Files were exported in "+self.dlg.browse.filePath()),QMessageBox.Ok, QMessageBox.Ok)
-				else :
-					QMessageBox.warning(None, self.tr(u'Unable to write in folder or inexistant folder'), self.tr(u"The folder doesn't exist or you don't have rights to write in this folder. Please, select another one!"), QMessageBox.Ok, QMessageBox.Ok)
-					self.run()
-			else:
-				self.createNewLayouts(layerNames,layerIds,layoutName, layerTitles = layerTitles)
-				QMessageBox.warning(None, self.tr(u'Operation completed'), self.tr(u"New layouts were created"),QMessageBox.Ok, QMessageBox.Ok)
-				self.dlg.close()
-		elif (layerNames == [] or layerNames == None):
-			QMessageBox.warning(None, self.tr(u'Please select a layer'), self.tr(u"No layer selected. Please, select at least one layer!"),QMessageBox.Ok, QMessageBox.Ok)
-			self.run()
-		elif (layoutName == None or layoutName == []):
-			QMessageBox.warning(None, self.tr(u'Please select a layout'), self.tr(u"No layout selected. Please, select at least one layout!"),QMessageBox.Ok, QMessageBox.Ok)
-			self.run()
+	def initGui(self):	
+		"""Create the menu entries and toolbar icons inside the QGIS GUI."""
+		icon_path = ':/plugins/QuickPrintLayoutCreator/img/icon.png'
+		self.add_action(
+			icon_path,
+			text=self.tr(u'Quick Print Layout Creator and Exporter'),
+			callback=self.run,
+			parent=self.iface.mainWindow())
 
+		# will be set False in run()
+		self.first_start = True
+
+	#Custom functions
+	
+	#UI fonctions
 	def startUI(self):
 
 		if self.first_start == True:
@@ -282,6 +219,18 @@ class QuickPrintLayoutCreator:
 		self.defaultDirectory = self.dlg.supportedFormatsBox.currentIndexChanged.connect(self.selectDefaultDirectory)
 		self.first_start = False
 		
+	def prepareProgressBar(self, number):
+		self.dlg.progressBar.setValue(0)
+		self.dlg.progressBar.setMaximum(number)
+		
+	def checkAll(self):
+	#check or uncheck all layers if the "checkAll" button is pressed
+		isChecked = self.dlg.checkAll.checkState()
+		for rowList in range(0, self.dlg.listLayer.count()):
+			item = self.dlg.listLayer.item(rowList)
+			if ((item.flags() & Qt.ItemIsUserCheckable) == Qt.ItemIsUserCheckable):
+				item.setCheckState(isChecked)		
+							
 	def selectDefaultDirectory(self):
 		#define defaut directory
 		if self.dlg.supportedFormatsBox.currentIndex() == 0 :
@@ -294,13 +243,6 @@ class QuickPrintLayoutCreator:
 			#image
 			directory = QSettings().value('/UI/lastSaveAsImageDir')
 		return directory
-		
-	def resetOptions(self, options):
-			self.first_start = True
-			self.dlg.checkAll.setChecked(False)
-			self.dlg.listLayer.clear()
-			self.dlg.listLayout.clear()
-			self.dlg.supportedFormatsBox.clear()
 	
 		
 	def getSupportedFormats(self):
@@ -313,53 +255,42 @@ class QuickPrintLayoutCreator:
 		return listFormats
 
 		
-		
-	def getCheckedLayers(self):
-		layerNames = [ self.dlg.listLayer.item(num).text() for num in range(0, self.dlg.listLayer.count()) if self.dlg.listLayer.item(num).checkState() == Qt.Checked]
-		layerIds = [ self.listLayersId[int(num/2)] for num in range(0, self.dlg.listLayer.count()) if self.dlg.listLayer.item(num).checkState() == Qt.Checked]
-		layerTitles = [ self.dlg.listLayer.item(num+1).text() for num in range(0, self.dlg.listLayer.count()) if self.dlg.listLayer.item(num).checkState() == Qt.Checked]
-		layerNames = self.rectifyLayerNames(layerNames)
-		return layerNames, layerIds, layerTitles
 
 
-	def rectifyLayerNames(self, layerNames):
-		#check if 2 layers have the same name and return a list without duplicates
-		counts = {k:v for k,v in Counter(layerNames).items() if v > 1}
-		for i in reversed(range(len(layerNames))):
-			item = layerNames[i]
-			if item in counts and counts[item]:
-				layerNames[i] += str(counts[item])
-				counts[item]-=1
-		return(layerNames)
+	
+	#Export functions	
+	def doIt(self):
+		#control the entries and make the exports or generate an error
 		
+		#get the list of layer selected names
+		layerNames, layerIds, layerTitles = self.getCheckedLayers()
+		#get the name of the selected layout
+		layoutName = self.getSelectedLayout()
+		if (layerNames != None and layerIds != None and layoutName != None and layerNames != [] and layoutName != []):
+			if	self.dlg.override.checkState():
+				for layerName in layerNames:
+					self.deleteLayouts(layoutName+'_QuickExport'+'_'+layerName)
+			if	self.dlg.exportLayouts.checkState():
+				if self.checkDirectory(self.dlg.browse.filePath()):
+					self.createNewLayouts(layerNames,layerIds, layoutName, self.getExtensionName(self.dlg.supportedFormatsBox.currentText()), self.dlg.browse.filePath(), layerTitles)
+					self.dlg.close()
+					QMessageBox.warning(None, self.tr(u'Operation completed'), self.tr(u"Files were exported in "+self.dlg.browse.filePath()),QMessageBox.Ok, QMessageBox.Ok)
+				else :
+					QMessageBox.warning(None, self.tr(u'Unable to write in folder or inexistant folder'), self.tr(u"The folder doesn't exist or you don't have rights to write in this folder. Please, select another one!"), QMessageBox.Ok, QMessageBox.Ok)
+					self.run()
+			else:
+				self.createNewLayouts(layerNames,layerIds,layoutName, layerTitles = layerTitles)
+				QMessageBox.warning(None, self.tr(u'Operation completed'), self.tr(u"New layouts were created"),QMessageBox.Ok, QMessageBox.Ok)
+				self.dlg.close()
+		elif (layerNames == [] or layerNames == None):
+			QMessageBox.warning(None, self.tr(u'Please select a layer'), self.tr(u"No layer selected. Please, select at least one layer!"),QMessageBox.Ok, QMessageBox.Ok)
+			self.run()
+		elif (layoutName == None or layoutName == []):
+			QMessageBox.warning(None, self.tr(u'Please select a layout'), self.tr(u"No layout selected. Please, select at least one layout!"),QMessageBox.Ok, QMessageBox.Ok)
+			self.run()
 	
-	
-	def getSelectedLayout(self):
-		return self.dlg.listLayout.currentText()
-			
-	def testLayout(self):
-		pass
-		
-	
-	def initLayer(self):
-		pass
-		
-	def getNewLayoutName(self, new_name):
-		layouts = self.layoutManager.printLayouts()
-		layoutsNames = []
-		for layout in layouts:
-			layoutsNames.append(layout.name())
-		while new_name in layoutsNames:
-			#ajouter 1 à la version
-			new_name += 'a'
-		return new_name
-	
-	def prepareProgressBar(self, number):
-		self.dlg.progressBar.setValue(0)
-		self.dlg.progressBar.setMaximum(number)
-			
 	def createNewLayouts(self, layerNames,layerIds, layoutName, exportExtension = None, folder = None, layerTitles = None):
-
+		#do the real job : create layouts and export if necessary
 		layoutBase = self.layoutManager.layoutByName(layoutName)		
 		self.prepareProgressBar(len(layerNames))
 		
@@ -415,7 +346,17 @@ class QuickPrintLayoutCreator:
 				self.layoutManager.removeLayout(currentLayout)
 
 			self.dlg.progressBar.setValue(i+1)
-				
+			
+	def getNewLayoutName(self, new_name):
+		layouts = self.layoutManager.printLayouts()
+		layoutsNames = []
+		for layout in layouts:
+			layoutsNames.append(layout.name())
+		while new_name in layoutsNames:
+			#add 1 to version
+			new_name += 'a'
+		return new_name
+		
 	def overrideExportSetings(self, layout, extension):
 		"""Because GUI settings are not exposed in Python, we need to find and catch user selection
 		   See discussion at http://osgeo-org.1560.x6.nabble.com/Programmatically-export-layout-with-georeferenced-file-td5365462.html"""
@@ -441,14 +382,7 @@ class QuickPrintLayoutCreator:
 
 		return exportSettings		
 
-	def checkAll(self):
-	#check or uncheck all layers if the "checkAll" button is pressed
-		isChecked = self.dlg.checkAll.checkState()
-		for rowList in range(0, self.dlg.listLayer.count()):
-			item = self.dlg.listLayer.item(rowList)
-			if ((item.flags() & Qt.ItemIsUserCheckable) == Qt.ItemIsUserCheckable):
-				item.setCheckState(isChecked)		
-			
+
 	def layerCheckedEvent(self):
 		#when a layer is checked, open a box to enter the title
 		for num in range(0, self.dlg.listLayer.count()):
@@ -466,7 +400,6 @@ class QuickPrintLayoutCreator:
 				else:
 					item2.setForeground(QBrush(QtCore.Qt.black))
 		
-			
 	def getExtensionName(self, text):
 		#get extension name from the UI name list
 		return('.'+re.sub('[^A-Z]', '', text).lower())
@@ -480,9 +413,26 @@ class QuickPrintLayoutCreator:
 	def checkDirectory(self, path):
 		return os.path.isdir(path) and os.access(path, os.W_OK)
 		
+	def getCheckedLayers(self):
+		layerNames = [ self.dlg.listLayer.item(num).text() for num in range(0, self.dlg.listLayer.count()) if self.dlg.listLayer.item(num).checkState() == Qt.Checked]
+		layerIds = [ self.listLayersId[int(num/2)] for num in range(0, self.dlg.listLayer.count()) if self.dlg.listLayer.item(num).checkState() == Qt.Checked]
+		layerTitles = [ self.dlg.listLayer.item(num+1).text() for num in range(0, self.dlg.listLayer.count()) if self.dlg.listLayer.item(num).checkState() == Qt.Checked]
+		layerNames = self.rectifyLayerNames(layerNames)
+		return layerNames, layerIds, layerTitles
+
+
+	def rectifyLayerNames(self, layerNames):
+		#check if 2 layers have the same name and return a list without duplicates
+		counts = {k:v for k,v in Counter(layerNames).items() if v > 1}
+		for i in reversed(range(len(layerNames))):
+			item = layerNames[i]
+			if item in counts and counts[item]:
+				layerNames[i] += str(counts[item])
+				counts[item]-=1
+		return(layerNames)
 		
-		
-		
+				
+	#main function	
 	def run(self):
 		"""Run method that performs all the real work"""
 		# Create the dialog with elements (after translation) and keep reference
