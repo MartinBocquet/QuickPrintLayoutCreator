@@ -1,0 +1,2 @@
+# QuickPrintLayoutCreator
+QGis Plugin QuickPrintLayoutCreator
