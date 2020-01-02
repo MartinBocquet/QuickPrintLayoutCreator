@@ -10,3 +10,6 @@ You can export your creation. When you wish to create multiple maps, you need, f
 format your layer, create your print layout, and then export it. 
 This plugin helps you to do it in one step : define your layers, your template, 
 and the plugin will generate one print layout by layers, and alows to export them.
+
+step 1 : create, analyse and change colors of your layers
+![alt text](https://github.com/MartinBocquet/QuickPrintLayoutCreator/blob/master/doc/step%201%20-%203%20layers.png)
