@@ -420,7 +420,10 @@ class QuickPrintLayoutCreator:
 		layerNames = self.rectifyLayerNames(layerNames)
 		return layerNames, layerIds, layerTitles
 
-
+	def getSelectedLayout(self):
+		return self.dlg.listLayout.currentText()
+		
+		
 	def rectifyLayerNames(self, layerNames):
 		#check if 2 layers have the same name and return a list without duplicates
 		counts = {k:v for k,v in Counter(layerNames).items() if v > 1}
