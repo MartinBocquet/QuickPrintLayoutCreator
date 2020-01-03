@@ -10,7 +10,8 @@ version=0.1
 author=Martin Bocquet
 email=martin.bocquet@gmail.com
 
-about=This plugin transforms multiple layers into multiple layouts, based on a template. You can export your creation. When you wish to create multiple maps, you need, for each maps, format your layer, create your print layout, and then export it. This plugin helps you to do it in one step : define your layers, your template, and the plugin will generate one print layout by layers, and alows to export them.
+about=When you wish to create multiple maps, you need, for each maps, format your layer, create your print layout, and then export it. This plugin helps you to do it in one step : define your layers, your template, and the plugin will generate one print layout by layers, and alows to export them. 
+This plugin transform several layers into several print layouts. These new layouts could be exported on the same time.The particularity of the plugin is to create the print layouts from several layers.
 
 tracker=https://github.com/MartinBocquet/QuickPrintLayoutCreator/issues
 repository=https://github.com/MartinBocquet/QuickPrintLayoutCreator
